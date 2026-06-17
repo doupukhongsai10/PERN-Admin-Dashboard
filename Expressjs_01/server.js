@@ -31,12 +31,39 @@ router.get('/:id', (req, res) => {
 
 // Create a new car
 router.post('/', (req, res) => {
-    res.send('create a new car');
+    const { make, model, year, price } = req.body;
+    if (!make || !model || !year || !price) {
+        return res.status(400).json({ error: "Missing fields" });
+    }
+    const newCar = {
+        id: cars.length + 1,
+        make,
+        model,
+        year: Number(year),
+        price: Number(price)
+    };
+    cars.push(newCar);
+    res.status(201).json(newCar);
 });
 
 // Update a car
 router.put('/:id', (req, res) => {
-    res.send('update car');
+    const id = Number(req.params.id);
+    const carIndex = cars.findIndex((car) => car.id === id);
+
+    if (carIndex === -1) {
+        return res.status(404).send('Car not found');
+    }
+
+    // Merge the updated fields from the request body
+    const updatedCar = {
+        ...cars[carIndex],
+        ...req.body,
+        id // Keep the same ID
+    };
+
+    cars[carIndex] = updatedCar;
+    res.json(updatedCar);
 });
 
 // Delete a car

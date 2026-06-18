@@ -1,4 +1,4 @@
-const http = require('http');
+import http from 'http';
 const server = http.createServer((req, res) => {
     res.writeHead(200, { 'content-Type': 'text/plain' });
     res.end('You just built a server in Node.js');

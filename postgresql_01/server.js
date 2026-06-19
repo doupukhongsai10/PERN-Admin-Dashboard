@@ -15,7 +15,7 @@ app.use((req, res, next) => {
     const timestamp = new Date().toISOString();
     console.log(`[${timestamp}] ${req.method} ${req.url}`);
     next();
-});
+}); 
 
 app.get('/', (req, res) => {
     res.send("Hello from cars API (Neon + Drizzle)!");
@@ -58,19 +58,23 @@ router.post('/', async (req, res) => {
 });
 
 // PUT - Update a car
-router.put('/:id', async (req, res) => {
+router.put('/cars/:id', async (req, res) => {
     try {
-        const id = Number(req.params.id);
-        const { make, model, year, price } = req.body;
-        const updates = {};
-        if (make) updates.make = make;
-        if (model) updates.model = model;
-        if (year) updates.year = Number(year);
-        if (price) updates.price = String(price);
+        const carId = parseInt(req.params.id);
+        const carIndex = cars.findIndex((c)=> c.id === carId);
 
-        const [updated] = await db.update(cars).set(updates).where(eq(cars.id, id)).returning();
-        if (!updated) return res.status(404).json({ error: 'Car not found' });
-        res.json(updated);
+        if(carIndex === -1){
+            return res.status(404).json({ error: "car not found"});
+        }
+        const {make, model, year, price} = req.body;
+    
+        if (make) cars[carIndex].make = make;
+        if (model) cars[carIndex].model = model;
+        if (year) cars[carIndex].year = parseInt(year);
+        if (price) cars[carIndex].price = parseFloat(price);
+
+        res.json(car[carIndex]);
+        
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

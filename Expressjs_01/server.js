@@ -3,17 +3,25 @@ import express from 'express';
 const app = express();
 const port = 3000;
 
-app.use(express.json());
-
-let cars = [
-    { id: 1, make: 'Toyota', model: 'Camry', year: 2022, price: 300000 },
-    { id: 2, make: 'Tesla', model: 'Model S', year: 2023, price: 250000 },
-    { id: 3, make: 'Ford', model: 'F-150', year: 2022, price: 340000 }
-];
-
 const router = express.Router();
 
-// Get all cars
+app.use(express.json());
+
+app.use((req, res, next) => {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] ${req.method} ${req.url}`);
+    next();
+})
+
+let cars = [
+    { id: 1, make: 'Toyota', model: 'Camry', year: 2022, Price: 23000 },
+    { id: 2, make: 'Tesla', model: 'Model S', year: 2023, Price: 25000 },
+    { id: 3, make: 'Ford', model: 'F-150', year: 2021, Price: 24000 },
+]
+app.get('/', (req, res) => {
+    res.send("Hello from cars API!");
+});
+
 router.get('/', (req, res) => {
     res.json(cars);
 });
@@ -31,17 +39,19 @@ router.get('/:id', (req, res) => {
 
 // Create a new car
 router.post('/', (req, res) => {
-    const { make, model, year, price } = req.body;
+    const { make, model, year, price } = req.body
+
     if (!make || !model || !year || !price) {
         return res.status(400).json({ error: "Missing fields" });
     }
     const newCar = {
         id: cars.length + 1,
-        make,
-        model,
-        year: Number(year),
-        price: Number(price)
+        make: make,
+        model: model,
+        year: year,
+        price: price
     };
+
     cars.push(newCar);
     res.status(201).json(newCar);
 });
@@ -55,27 +65,29 @@ router.put('/:id', (req, res) => {
         return res.status(404).send('Car not found');
     }
 
-    // Merge the updated fields from the request body
-    const updatedCar = {
-        ...cars[carIndex],
-        ...req.body,
-        id // Keep the same ID
-    };
+    const { make, model, year, price } = req.body;
 
-    cars[carIndex] = updatedCar;
-    res.json(updatedCar);
+    if (make) cars[carIndex].make = make;
+    if (model) cars[carIndex].model = model;
+    if (year) cars[carIndex].year = year;
+    if (price) cars[carIndex].price = price;
+
+    res.json(cars[carIndex]);
 });
 
-// Delete a car
 router.delete('/:id', (req, res) => {
-    res.send('Delete car');
+    const id = Number(req.params.id);
+    const index = cars.findIndex(c => c.id === id);
+
+    if (index === -1) {
+        return res.status(404).json({ error: "car not found" });
+    }
+
+    const deleted = cars.splice(index, 1)[0];
+    res.json({ message: "car deleted" });
 });
 
-// Mount the router at /api/v1/cars
-app.use('/api/v1/cars', router);
 
-app.get('/', (req, res) => {
-    res.send('Hello from the Cars API!');
-});
 
+app.use('/api/v1', router);
 app.listen(port, () => console.log(`Server is running on http://localhost:${port}`));
